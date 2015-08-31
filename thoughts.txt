@@ -1,0 +1,51 @@
+# Blender Server 3.0 - Project Kuro
+
+main():
+
+initArgs():
+	# kuro -t 128932
+	# maybe kuro -t 128932 -u username -p password -h host -s ftp/s3/sftp
+	# taskname
+	# ./taskname/model.obj
+	# ./taskname/diff.jpg
+	# ./taskname/spec.jpg
+	# ./taskname/norm.jpg
+
+importBlend():
+
+importFiles():
+
+initFiles():
+	assignMaterial()
+	assignTexture()
+
+renderFrames():
+	# let's see what happens!
+
+initImageMagick():
+
+initCanvas():
+
+# loadFrames(): # consider loadFrames option
+
+scaleFrames():
+
+repositionFrames():
+
+exportSpriteSheet():
+
+
+
+pngQuant():
+
+jpegOptim():
+
+
+
+#maybe
+
+uploadToS3():
+
+uploadToFTP():
+
+uploadToSFTP():
