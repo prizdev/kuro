@@ -22,25 +22,18 @@ initFiles():
 renderFrames():
 	# let's see what happens!
 
-initImageMagick():
-
-initCanvas():
-
-# loadFrames(): # consider loadFrames option
-
-scaleFrames():
-
-repositionFrames():
-
-exportSpriteSheet():
-
-
-
-pngQuant():
-
-jpegOptim():
-
-
+processOutput(outputFilename):  #run once for sprite sheet, once for gif.
+	setArgs():  #set args for following functions based on extension of outputFilename
+	initImageMagick():
+	initCanvas(sizeX,sizeY):
+	importFrame():
+		for frame in frames:
+			loadFrame(frameSlice): # consider loadFrames option
+			scaleFrame(scaleRes):
+			animFrame(animBool):
+			placeFrame(placeBool):
+	exportCanvas(outputFilename):
+	outputOptimization():  #pngQuant if outputFilename includes .png
 
 #maybe
 
@@ -49,3 +42,5 @@ uploadToS3():
 uploadToFTP():
 
 uploadToSFTP():
+
+deleteFiles():
