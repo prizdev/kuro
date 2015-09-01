@@ -3,13 +3,7 @@
 main():
 
 initArgs():
-	# kuro -t 128932
-	# maybe kuro -t 128932 -u username -p password -h host -s ftp/s3/sftp
-	# taskname
-	# ./taskname/model.obj
-	# ./taskname/diff.jpg
-	# ./taskname/spec.jpg
-	# ./taskname/norm.jpg
+	# kuro -t 128932        (.taskname/model.obj,./taskname/diff.jpg, ...)
 
 importBlend():
 
