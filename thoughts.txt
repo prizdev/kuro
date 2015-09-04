@@ -3,7 +3,6 @@
 main():
 
 initArgs():
-	# kuro -t 128932        (.taskname/model.obj,./taskname/diff.jpg, ...)
 
 importBlend():
 
