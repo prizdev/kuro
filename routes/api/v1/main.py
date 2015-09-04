@@ -37,9 +37,7 @@ def initInputs(outputSwitch):
 
 
 def importAssets(filesIn):
-    #blueprint blend import
     bpy.ops.wm.open_mainfile(filepath = 'E:\\Prizmiq\\Misc\\Dev\\Github\\kuro\\assets\\blueprintBlend\\blueprint_v001_003.blend')
-    #obj import
     bpy.ops.import_scene.obj(filepath = filesIn[0])
 
 
@@ -47,7 +45,6 @@ def materialAssignment(filesIn):
     for obj in bpy.data.objects:
         if 'Group' in obj.name:
             obj.data.materials[0] = bpy.data.materials['Material']
-    #print(bpy.data.materials['Material'].node_tree.nodes[5]
 
     mat                = bpy.data.materials['Material']
     nodes              = mat.node_tree.nodes
@@ -69,8 +66,6 @@ def renderScene(resolution, gifBool):
     render = bpy.data.scenes['Scene'].render
     render.resolution_x = resolution * 2
     render.resolution_y = resolution * 2
-    #for axis in [render.resolution_x, render.resolution_y]:
-    #    axis = resolution
 
     render.filepath = 'E:\\Prizmiq\\Misc\\Dev\\Github\\kuro\\assets\\renderFilepath\\render.jpg'
     bpy.ops.render.render(animation = True, write_still = True)
