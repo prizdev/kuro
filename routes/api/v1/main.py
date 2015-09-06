@@ -9,11 +9,13 @@ def main():
     resNogl   = initInputs(1)
     resGif    = initInputs(2)
     taskname  = initInputs(3)
-    #importAssets(filesIn)
-    #materialAssignment(filesIn)
-    #renderScene(resNogl, False)
-    #renderScene(resGif, True)
-    processNogl(taskname)
+    workDir   = initInputs(4)
+    importAssets(filesIn, workDir)
+    materialAssignment(filesIn)
+    renderScene(resNogl, taskname, workDir, False)
+    renderScene(resGif, taskname, workDir, True)
+    processNogl(taskname, workDir)
+    processGif(taskname, resGif, workDir)
     print('{ taskname : %s }' % taskname)
     print('Finished script!')
 
@@ -22,29 +24,32 @@ def initInputs(outputSwitch):
     taskname = str(sys.argv[sys.argv.index('-t') + 1])
     resNogl  = int(sys.argv[sys.argv.index('-nogl') + 1])
     resGif   = int(sys.argv[sys.argv.index('-gif') + 1])
+    workDir  = str(os.getcwd())
     if sys.platform == 'linux2' or sys.platform == 'linux':
-        assetsFolder = os.getcwd() + '/assets/%s/input/' % taskname
+        assetsFolder = workDir + '/assets/%s/input/' % taskname
     else:
-        assetsFolder = os.getcwd() + '\\assets\\%s\\input\\' % taskname
+        assetsFolder = workDir + '\\assets\\%s\\input\\' % taskname
     fileNames    = ['geometry.obj', 'diffuse.jpg', 'specular.jpg', 'normal.jpg']    #specular and normal are not yet integrated
     filesIn      = []
     for name in fileNames:
         filesIn.append(assetsFolder + name)
+
     if outputSwitch == 0:
         return(filesIn)
     elif outputSwitch == 1:
         return(resNogl)
     elif outputSwitch == 2:
         return(resGif)
-    else:
+    elif outputSwitch == 3:
         return(taskname)
-print(os.getcwd())
-
-def importAssets(filesIn):
-    if sys.platform == 'linux2' or sys.platform == 'linux':
-        bpy.ops.wm.open_mainfile(filepath = os.getcwd() + '/assets/blueprintBlend/blueprint_v001_003.blend')
     else:
-        bpy.ops.wm.open_mainfile(filepath = os.getcwd() + '\\assets\\blueprintBlend\\blueprint_v001_003.blend')
+        return(workDir)
+
+def importAssets(filesIn, workDir):
+    if sys.platform == 'linux2' or sys.platform == 'linux':
+        bpy.ops.wm.open_mainfile(filepath = workDir + '/assets/blueprintBlend/blueprint_v001_003.blend')
+    else:
+        bpy.ops.wm.open_mainfile(filepath = workDir + '\\assets\\blueprintBlend\\blueprint_v001_003.blend')
     bpy.ops.import_scene.obj(filepath = filesIn[0])
 
 
@@ -62,10 +67,10 @@ def materialAssignment(filesIn):
     link               = links.new(node_texture.outputs[0], emission_shader.inputs[0])
 
 
-def renderScene(resolution, gifBool):
+def renderScene(resolution, taskname, workDir, gifBool):
     if gifBool == True:
         bpy.data.scenes['Scene'].frame_start = 82
-        bpy.data.scenes['Scene'].frame_end   = 601
+        bpy.data.scenes['Scene'].frame_end   = 382
     else:
         bpy.data.scenes['Scene'].frame_start = 1
         bpy.data.scenes['Scene'].frame_end   = 81
@@ -75,49 +80,72 @@ def renderScene(resolution, gifBool):
     render.resolution_y = resolution * 2
 
     if sys.platform == 'linux2' or sys.platform == 'linux':
-        render.filepath = os.getcwd() + '/assets/%s/render/render.jpg' % taskname
+        render.filepath = workDir + '/assets/%s/render/' % taskname
     else:
-        render.filepath = os.getcwd() + '\\assets\\%s\\render\\render.jpg' % taskname
+        render.filepath = workDir + '\\assets\\%s\\render\\' % taskname
     bpy.ops.render.render(animation = True, write_still = True)
 
 
-def processNogl(taskname):
+def processNogl(taskname, workDir):
     if sys.platform == 'linux2' or sys.platform == 'linux':
-        imgFiles = (os.listdir(os.getcwd() + '/assets/%s/render' % taskname))
-
+        imgFiles = os.listdir(workDir + '/assets/%s/render' % taskname)
     else:
-        imgFiles    = os.listdir(os.getcwd() + '\\assets\\%s\\render' % taskname)
-        noglFiles   = []
-        indices     = []
-        rowList      = [0, 16, 32, 48, 64, 80]
-        for index in range(1, 82):
-            if len(str(index)) == 1:
-                indices.append('000%s' % str(index))
-            elif len(str(index)) == 2:
-                indices.append('00%s' % str(index))
+        imgFiles = os.listdir(workDir + '\\assets\\%s\\render' % taskname)
+    noglFiles    = []
+    indices      = []
+    rowList      = [1, 17, 33, 49, 65, 81]
+    for index in range(1, 82):
+        if len(str(index)) == 1:
+            indices.append('000%s' % str(index))
+        elif len(str(index)) == 2:
+            indices.append('00%s' % str(index))
+        else:
+            indices.append('0%s' % str(index))
+
+    for img in imgFiles:
+        for index in indices:
+            if img.find(index) != -1:
+                noglFiles.append(img)
+
+    trmCmd = 'convert ( '
+    for n in range(1, 6):
+        for x in noglFiles[rowList[n - 1]:rowList[n]]:
+            trmCmd = trmCmd + '%s -resize 512x512 ' % x
+            if x == noglFiles[rowList[5] - 1]:
+                trmCmd = trmCmd + '+append )'
+            elif x == noglFiles[rowList[n] - 1]:
+                trmCmd = trmCmd + '+append ) ( '
             else:
-                indices.append('0%s' % str(index))
+                pass
 
-        for img in imgFiles:
-            for index in indices:
-                if img.find(index) != -1:
-                    noglFiles.append(img)
+    trmCmd = trmCmd + ' -append %sspritesheet%s.jpg' % (workDir + '\\assets\\%s\\output\\' % taskname, taskname)
 
-        trmCmd = 'convert ( '
-        for x in range(1, 7):
-            n = rowList[x - 1]
-            while n <= x:
-                for noglFile in noglFiles:
-                    trmCmd = trmCmd + '%s -resize 512x512 ' % noglFile
-                    n += 1
-            trmCmd = trmCmd + '+append ) '
-        trmCmd = trmCmd + '-append spritesheet%s.jpg' % taskname
-        print(trmCmd)
-
-        os.chdir(os.getcwd() + '\\assets\\123456\\render')
+    os.chdir(os.getcwd() + '\\assets\\%s\\render' % taskname)
+    os.system(trmCmd)
 
 
+def processGif(taskname, resGif, workDir):
+    if sys.platform == 'linux2' or sys.platform == 'linux':
+        imgFiles = os.listdir(workDir + '/assets/%s/render' % taskname)
+    else:
+        imgFiles = os.listdir(workDir + '\\assets\\%s\\render' % taskname)
+    gifFiles     = ''
+    indices      = []
+    for index in range(82, 602):
+        if len(str(index)) == 1:
+            indices.append('000%s' % str(index))
+        elif len(str(index)) == 2:
+            indices.append('00%s' % str(index))
+        else:
+            indices.append('0%s' % str(index))
 
+    for img in imgFiles:
+        for index in indices:
+            if img.find(index) != -1:
+                gifFiles = gifFiles + img + ' '
+
+    os.chdir(workDir + '\\assets\\%s\\render' % taskname)
+    os.system('convert -layers OptimizePlus -delay 3x100 ' + gifFiles + '-loop 0 %sanimation%s.gif' % (workDir + '\\assets\\%s\\output\\' % taskname, taskname))
 
 
 
