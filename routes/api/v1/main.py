@@ -23,9 +23,9 @@ def initInputs(outputSwitch):
     resNogl  = int(sys.argv[sys.argv.index('-nogl') + 1])
     resGif   = int(sys.argv[sys.argv.index('-gif') + 1])
     if sys.platform == 'linux2' or sys.platform == 'linux':
-        assetsFolder = '/home/tim/share/Prizmiq/Misc/Dev/Github/kuro/assets/%s/input/' % taskname
+        assetsFolder = os.getcwd() + '/assets/%s/input/' % taskname
     else:
-        assetsFolder = 'E:\\Prizmiq\\Misc\\Dev\\Github\\kuro\\assets\\%s\\input\\' % taskname
+        assetsFolder = os.getcwd() + '\\assets\\%s\\input\\' % taskname
     fileNames    = ['geometry.obj', 'diffuse.jpg', 'specular.jpg', 'normal.jpg']    #specular and normal are not yet integrated
     filesIn      = []
     for name in fileNames:
@@ -38,13 +38,13 @@ def initInputs(outputSwitch):
         return(resGif)
     else:
         return(taskname)
-
+print(os.getcwd())
 
 def importAssets(filesIn):
     if sys.platform == 'linux2' or sys.platform == 'linux':
-        bpy.ops.wm.open_mainfile(filepath = '/home/tim/share/Prizmiq/Misc/Dev/Github/kuro/assets/blueprintBlend/blueprint_v001_003.blend')
+        bpy.ops.wm.open_mainfile(filepath = os.getcwd() + '/assets/blueprintBlend/blueprint_v001_003.blend')
     else:
-        bpy.ops.wm.open_mainfile(filepath = 'E:\\Prizmiq\\Misc\\Dev\\Github\\kuro\\assets\\blueprintBlend\\blueprint_v001_003.blend')
+        bpy.ops.wm.open_mainfile(filepath = os.getcwd() + '\\assets\\blueprintBlend\\blueprint_v001_003.blend')
     bpy.ops.import_scene.obj(filepath = filesIn[0])
 
 
@@ -75,18 +75,18 @@ def renderScene(resolution, gifBool):
     render.resolution_y = resolution * 2
 
     if sys.platform == 'linux2' or sys.platform == 'linux':
-        render.filepath = '/home/tim/share/Prizmiq/Misc/Dev/Github/kuro/assets/123456/render/render.jpg'
+        render.filepath = os.getcwd() + '/assets/%s/render/render.jpg' % taskname
     else:
-        render.filepath = 'E:\\Prizmiq\\Misc\\Dev\\Github\\kuro\\assets\\123456\\render\\render.jpg'
+        render.filepath = os.getcwd() + '\\assets\\%s\\render\\render.jpg' % taskname
     bpy.ops.render.render(animation = True, write_still = True)
 
 
 def processNogl(taskname):
     if sys.platform == 'linux2' or sys.platform == 'linux':
-        imgFiles = (os.listdir('/home/tim/share/Prizmiq/Misc/Dev/Github/kuro/assets/%s/render' % taskname))
+        imgFiles = (os.listdir(os.getcwd() + '/assets/%s/render' % taskname))
 
     else:
-        imgFiles    = os.listdir('E:\\Prizmiq\\Misc\\Dev\\Github\\kuro\\assets\\%s\\render' % taskname)
+        imgFiles    = os.listdir(os.getcwd() + '\\assets\\%s\\render' % taskname)
         noglFiles   = []
         indices     = []
         rowList      = [0, 16, 32, 48, 64, 80]
@@ -114,7 +114,7 @@ def processNogl(taskname):
         trmCmd = trmCmd + '-append spritesheet%s.jpg' % taskname
         print(trmCmd)
 
-        os.chdir('E:\\Prizmiq\\Misc\\Dev\\Github\\kuro\\assets\\123456\\render')
+        os.chdir(os.getcwd() + '\\assets\\123456\\render')
 
 
 

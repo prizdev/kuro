@@ -7,12 +7,12 @@ module.exports = function(req, res) {
         // add task to database
         // check to see if database is running
         // if(not running)
-        var taskname = '12345';
-        mkdirp('./taskname/input', function(err) {
+        var taskname = '123456';
+        mkdirp('./assets/'+taskname+'/input', function(err) {
             if(err) res.send('task creation failed: directory creation failed');
-            else mkdirp('./taskname/output', function(err) {
+            else mkdirp('./assets/'+taskname+'/output', function(err) {
                 if(err) res.send('task creation failed: directory creation failed');
-                else mkdirp('./taskname/render', function(err) {
+                else mkdirp('./assets/'+taskname+'/render', function(err) {
                     if(err) res.send('task creation failed: directory creation failed');
                     else {
                         var exec = require('child_process').exec;
@@ -21,7 +21,7 @@ module.exports = function(req, res) {
                             cmd = '"C:\\Program Files\\Blender Foundation\\Blender\\blender.exe" -b -P ' + path.join(__dirname, 'main.py') + ' -t ' + taskname + ' ' + ' -nogl ' + req.body.nogl + ' -gif ' + req.body.gif;
                         }
                         else {
-                            cmd = 'blender -b -P ' + path.join(__dirname, 'main.py') + ' -t ' + taskname + ' ' + ' -nogl ' + req.body.nogl + ' -gif ' + req.body.gif;
+                            cmd = 'blender -b -P ' + path.join(__dirname, 'main.py') + ' -t ' + taskname + ' ' + '-nogl ' + req.body.nogl + ' -gif ' + req.body.gif;
                         }
                         console.log(cmd);
                         exec(cmd, function(error, stdout, stderr) {
