@@ -27,6 +27,7 @@ build/Release
 node_modules/*/
 !node_modules/file_minifier/
 !node_modules/server_upload/
+!node_modules/kuro_renderer/
 node_modules/*/node_modules/
 
 .DS_Store

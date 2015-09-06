@@ -3,9 +3,20 @@ var path = require('path');
 var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
+var multer = require('multer');
+var uploads = multer({ dest: path.join(__dirname, 'tmp' )});
 var bodyParser = require('body-parser');
 
 var app = express();
+
+app.use(uploads.fields([
+    {
+        name: 'geo'
+    },
+    {
+        name: 'diff'
+    }
+]));
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
