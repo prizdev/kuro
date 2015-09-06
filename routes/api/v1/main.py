@@ -13,7 +13,7 @@ def main():
     #materialAssignment(filesIn)
     #renderScene(resNogl, False)
     #renderScene(resGif, True)
-    processNogl(filesIn)
+    processNogl(taskname)
     print('{ taskname : %s }' % taskname)
     print('Finished script!')
 
@@ -36,7 +36,7 @@ def initInputs(outputSwitch):
         return(resNogl)
     elif outputSwitch == 2:
         return(resGif)
-    elif outputSwitch == 3:
+    else:
         return(taskname)
 
 
@@ -81,14 +81,15 @@ def renderScene(resolution, gifBool):
     bpy.ops.render.render(animation = True, write_still = True)
 
 
-def processNogl(filesIn):
+def processNogl(taskname):
     if sys.platform == 'linux2' or sys.platform == 'linux':
-        imgFiles = (os.listdir('/home/tim/share/Prizmiq/Misc/Dev/Github/kuro/assets/123456/render'))
+        imgFiles = (os.listdir('/home/tim/share/Prizmiq/Misc/Dev/Github/kuro/assets/%s/render' % taskname))
 
     else:
-        imgFiles    = os.listdir('E:\\Prizmiq\\Misc\\Dev\\Github\\kuro\\assets\\123456\\render')
+        imgFiles    = os.listdir('E:\\Prizmiq\\Misc\\Dev\\Github\\kuro\\assets\\%s\\render' % taskname)
         noglFiles   = []
         indices     = []
+        rowList      = [0, 16, 32, 48, 64, 80]
         for index in range(1, 82):
             if len(str(index)) == 1:
                 indices.append('000%s' % str(index))
@@ -103,8 +104,14 @@ def processNogl(filesIn):
                     noglFiles.append(img)
 
         trmCmd = 'convert ( '
-        for noglFile in noglFiles:
-            trmCmd = trmCmd + '%s -resize ' % noglFile
+        for x in range(1, 7):
+            n = rowList[x - 1]
+            while n <= x:
+                for noglFile in noglFiles:
+                    trmCmd = trmCmd + '%s -resize 512x512 ' % noglFile
+                    n += 1
+            trmCmd = trmCmd + '+append ) '
+        trmCmd = trmCmd + '-append spritesheet%s.jpg' % taskname
         print(trmCmd)
 
         os.chdir('E:\\Prizmiq\\Misc\\Dev\\Github\\kuro\\assets\\123456\\render')
