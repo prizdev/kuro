@@ -27,14 +27,13 @@ processOutput(outputFilename):  #run once for sprite sheet, once for gif.
 			animFrame(animBool):
 			placeFrame(placeBool):
 	exportCanvas(outputFilename):
-	outputOptimization():  #pngQuant if outputFilename includes .png
+	outputOptimization():  #pngQuant if outputFilename includes .png, jpegoptim if outputFilename includes .jpg or .jpeg
 
 #maybe
+	uploadToS3():
 
-uploadToS3():
+	uploadToFTP():
 
-uploadToFTP():
+	uploadToSFTP():
 
-uploadToSFTP():
-
-deleteFiles():
+	deleteFiles():
