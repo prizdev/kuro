@@ -138,6 +138,7 @@ def processGif(taskname, resGif, workDir):
         imgFiles = os.listdir(workDir + '/assets/%s/render' % taskname)
     else:
         imgFiles = os.listdir(workDir + '\\assets\\%s\\render' % taskname)
+    gifFilesList = []
     gifFiles     = ''
     indices      = []
     for index in range(82, 602):
@@ -151,7 +152,11 @@ def processGif(taskname, resGif, workDir):
     for img in imgFiles:
         for index in indices:
             if img.find(index) != -1:
-                gifFiles = gifFiles + img + ' '
+                gifFilesList.append(img)
+
+    gifFilesList = sorted(gifFilesList)
+    for gifFile in gifFilesList:
+        gifFiles = gifFiles + gifFile + ' '
 
     if sys.platform == 'linux2' or sys.platform == 'linux':
         os.chdir(workDir + '/assets/%s/render' % taskname)
