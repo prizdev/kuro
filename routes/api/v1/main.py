@@ -10,10 +10,11 @@ def main():
     resGif    = initInputs(2)
     taskname  = initInputs(3)
     workDir   = initInputs(4)
+    print(workDir)
     importAssets(filesIn, workDir)
     materialAssignment(filesIn)
-    renderScene(resNogl, taskname, workDir, False)
-    renderScene(resGif, taskname, workDir, True)
+    #renderScene(resNogl, taskname, workDir, False)
+    #renderScene(resGif, taskname, workDir, True)
     processNogl(taskname, workDir)
     processGif(taskname, resGif, workDir)
     print('{ taskname : %s }' % taskname)
@@ -107,6 +108,7 @@ def processNogl(taskname, workDir):
             if img.find(index) != -1:
                 noglFiles.append(img)
 
+    noglFiles = sorted(noglFiles)
     trmCmd = 'convert ( '
     for n in range(1, 6):
         for x in noglFiles[rowList[n - 1]:rowList[n]]:
@@ -118,9 +120,16 @@ def processNogl(taskname, workDir):
             else:
                 pass
 
-    trmCmd = trmCmd + ' -append %sspritesheet%s.jpg' % (workDir + '\\assets\\%s\\output\\' % taskname, taskname)
 
-    os.chdir(os.getcwd() + '\\assets\\%s\\render' % taskname)
+
+    if sys.platform == 'linux2' or sys.platform == 'linux':
+        trmCmd = trmCmd + ' -append %sspritesheet%s.jpg' % (workDir + '/assets/%s/output/' % taskname, taskname)
+        trmCmd = trmCmd.replace('(', '"("');
+        trmCmd = trmCmd.replace(')', '")"');
+        os.chdir(workDir + '/assets/%s/render' % taskname)
+    else:
+        trmCmd = trmCmd + ' -append %sspritesheet%s.jpg' % (workDir + '\\assets\\%s\\output\\' % taskname, taskname)
+        os.chdir(workDir + '\\assets\\%s\\render' % taskname)
     os.system(trmCmd)
 
 
@@ -144,8 +153,12 @@ def processGif(taskname, resGif, workDir):
             if img.find(index) != -1:
                 gifFiles = gifFiles + img + ' '
 
-    os.chdir(workDir + '\\assets\\%s\\render' % taskname)
-    os.system('convert -layers OptimizePlus -delay 3x100 ' + gifFiles + '-loop 0 %sanimation%s.gif' % (workDir + '\\assets\\%s\\output\\' % taskname, taskname))
+    if sys.platform == 'linux2' or sys.platform == 'linux':
+        os.chdir(workDir + '/assets/%s/render' % taskname)
+        os.system('convert -layers OptimizePlus -delay 3x100 ' + gifFiles + '-loop 0 %sanimation%s.gif' % (workDir + '/assets/%s/output/' % taskname, taskname))
+    else:
+        os.chdir(workDir + '\\assets\\%s\\render' % taskname)
+        os.system('convert -layers OptimizePlus -delay 3x100 ' + gifFiles + '-loop 0 %sanimation%s.gif' % (workDir + '\\assets\\%s\\output\\' % taskname, taskname))
 
 
 

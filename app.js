@@ -11,10 +11,10 @@ var app = express();
 
 app.use(uploads.fields([
     {
-        name: 'geo'
+        name: 'geometry'
     },
     {
-        name: 'diff'
+        name: 'diffuse'
     }
 ]));
 

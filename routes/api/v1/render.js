@@ -22,10 +22,7 @@ module.exports = function(req, res) {
                             if(err) res.send('task creation failed: directory creation failed3');
                             else {
                                 Object.keys(req.files).forEach(function(e){
-                                    var derp = fs.statSync(path.join(__dirname, '/../../../assets/'+insert_results.rows[0].name+'/input/'));//req.files[e][0].path);
-                                    console.log(derp.isFile());
-                                    console.log(derp.isDirectory());
-                                    fs.renameSync(req.files[e][0].path, path.join(__dirname, '/../../../assets/'+insert_results.rows[0].name+'/input/' + e + req.files[e][0].originalname.split('.')[1]));
+                                    fs.renameSync(req.files[e][0].path, path.join(__dirname, '/../../../assets/'+insert_results.rows[0].name+'/input/' + e + '.' + req.files[e][0].originalname.split('.')[1]));
                                 });
                                 client.query(count_query, function(err, count_results) {
                                     if(err) {console.log(err);done();}
@@ -33,12 +30,15 @@ module.exports = function(req, res) {
                                         done();
                                         if(err) console.log(err);
                                         console.log(count_results.rows[0].count);
+                                        res.send({
+                                            success: true,
+                                            data: {
+                                                message: 'Render added to queue',
+                                                taskname: insert_results.rows[0].name
+                                            }
+                                        });
                                         if(parseInt(count_results.rows[0].count) === 0) {
-                                            res.send({
-                                                success: true,
-                                                message: 'Render added to queue'
-                                            });
-                                            //kuro_renderer();
+                                            kuro_renderer();
                                         }
                                     });
                                 });
