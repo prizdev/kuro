@@ -1,60 +1,48 @@
-# Blender Server 3.0 - Project Kuro
+import bpy, sys, os, re
 
-import bpy
-import sys
-import os
 
 def main():
-    filesIn   = initInputs(0)
-    resNogl   = initInputs(1)
-    resGif    = initInputs(2)
-    taskname  = initInputs(3)
-    workDir   = initInputs(4)
-    print(workDir)
-    importAssets(filesIn, workDir)
-    materialAssignment(filesIn)
-    renderScene(resNogl, taskname, workDir, False)
-    renderScene(resGif, taskname, workDir, True)
-    processNogl(taskname, workDir)
-    processGif(taskname, resGif, workDir)
-    print('{ taskname : %s }' % taskname)
+    directory    = initInputs(0)
+    nogl         = initInputs(1)
+    gif          = initInputs(2)
+
+    initProject(directory)
+    renderScene(nogl, 'nogl', directory)
+    renderScene(gif, 'gif', directory)
+    processNogl(directory)
+    processGif(directory)
+
     print('Finished script!')
 
 
-def initInputs(outputSwitch):
-    taskname = str(sys.argv[sys.argv.index('-t') + 1])
-    resNogl  = int(sys.argv[sys.argv.index('-nogl') + 1])
-    resGif   = int(sys.argv[sys.argv.index('-gif') + 1])
-    workDir  = str(os.getcwd())
-    if sys.platform == 'linux2' or sys.platform == 'linux':
-        assetsFolder = workDir + '/assets/%s/input/' % taskname
+def initInputs(switch):
+    if sys.argv[-1].find('/') == -1:
+        print('Please add the project directory as the last argument in single quotes.')
     else:
-        assetsFolder = workDir + '\\assets\\%s\\input\\' % taskname
-    fileNames    = ['geometry.obj', 'diffuse.jpg', 'specular.jpg', 'normal.jpg']    #specular and normal are not yet integrated
-    filesIn      = []
-    for name in fileNames:
-        filesIn.append(assetsFolder + name)
+        directory = sys.argv[-1].replace('\\', '/')
 
-    if outputSwitch == 0:
-        return(filesIn)
-    elif outputSwitch == 1:
-        return(resNogl)
-    elif outputSwitch == 2:
-        return(resGif)
-    elif outputSwitch == 3:
-        return(taskname)
+    if '-nogl' in sys.argv:
+        nogl = int(sys.argv[sys.argv.index('-nogl') + 1])
     else:
-        return(workDir)
+        nogl = 0
 
-def importAssets(filesIn, workDir):
-    if sys.platform == 'linux2' or sys.platform == 'linux':
-        bpy.ops.wm.open_mainfile(filepath = workDir + '/assets/blueprintBlend/blueprint_v001_003.blend')
+    if '-gif' in sys.argv:
+        gif = int(sys.argv[sys.argv.index('-gif') + 1])
     else:
-        bpy.ops.wm.open_mainfile(filepath = workDir + '\\assets\\blueprintBlend\\blueprint_v001_003.blend')
-    bpy.ops.import_scene.obj(filepath = filesIn[0])
+        gif = 0
+
+    if switch == 0:
+        return(directory)
+    elif switch == 1:
+        return(nogl)
+    elif switch == 2:
+        return(gif)
 
 
-def materialAssignment(filesIn):
+def initProject(directory):
+    bpy.ops.wm.open_mainfile(filepath = findNewest('blueprint', 'E:/Prizmiq/Misc/Dev/Github/kuro/assets/blueprintBlend/'))
+    bpy.ops.import_scene.obj(filepath = findNewest('center', directory))
+
     for obj in bpy.data.objects:
         if 'Group' in obj.name:
             obj.data.materials[0] = bpy.data.materials['Material']
@@ -63,108 +51,94 @@ def materialAssignment(filesIn):
     nodes              = mat.node_tree.nodes
     node_texture       = bpy.data.materials['Material'].node_tree.nodes[5]
     emission_shader    = bpy.data.materials['Material'].node_tree.nodes[2]
-    node_texture.image = bpy.data.images.load(filesIn[1])
+    node_texture.image = bpy.data.images.load(findNewest('diffuse', directory))
     links              = mat.node_tree.links
     link               = links.new(node_texture.outputs[0], emission_shader.inputs[0])
 
 
-def renderScene(resolution, taskname, workDir, gifBool):
-    if gifBool == True:
-        bpy.data.scenes['Scene'].frame_start = 82
-        bpy.data.scenes['Scene'].frame_end   = 382
-    else:
-        bpy.data.scenes['Scene'].frame_start = 1
-        bpy.data.scenes['Scene'].frame_end   = 81
-
-    render = bpy.data.scenes['Scene'].render
-    render.resolution_x = resolution * 2
-    render.resolution_y = resolution * 2
-
-    if sys.platform == 'linux2' or sys.platform == 'linux':
-        render.filepath = workDir + '/assets/%s/render/' % taskname
-    else:
-        render.filepath = workDir + '\\assets\\%s\\render\\' % taskname
-    bpy.ops.render.render(animation = True, write_still = True)
-
-
-def processNogl(taskname, workDir):
-    if sys.platform == 'linux2' or sys.platform == 'linux':
-        imgFiles = os.listdir(workDir + '/assets/%s/render' % taskname)
-    else:
-        imgFiles = os.listdir(workDir + '\\assets\\%s\\render' % taskname)
-    noglFiles    = []
-    indices      = []
-    rowList      = [1, 17, 33, 49, 65, 81]
-    for index in range(1, 82):
-        if len(str(index)) == 1:
-            indices.append('000%s' % str(index))
-        elif len(str(index)) == 2:
-            indices.append('00%s' % str(index))
+def renderScene(resolution, output, directory):
+    if resolution != 0:
+        if output == 'gif':
+            bpy.data.scenes['Scene'].frame_start = 82
+            bpy.data.scenes['Scene'].frame_end   = 382
         else:
-            indices.append('0%s' % str(index))
+            bpy.data.scenes['Scene'].frame_start = 2
+            bpy.data.scenes['Scene'].frame_end   = 81
 
-    for img in imgFiles:
-        for index in indices:
-            if img.find(index) != -1:
-                noglFiles.append(img)
+        render = bpy.data.scenes['Scene'].render
+        render.resolution_x = resolution * 2
+        render.resolution_y = resolution * 2
+        render.filepath = directory + '/nbt/render/%s/' % output
+        bpy.ops.render.render(animation = True, write_still = True)
 
-    noglFiles = sorted(noglFiles)
+
+def processNogl(directory):
+    images = os.listdir(directory + '/nbt/render/nogl/')
+    rowList = [0, 16, 32, 48, 64, 80]
     trmCmd = 'convert ( '
-    for n in range(1, 6):
-        for x in noglFiles[rowList[n - 1]:rowList[n]]:
-            trmCmd = trmCmd + '%s -resize 512x512 ' % x
-            if x == noglFiles[rowList[5] - 1]:
+    for n in range(0, 5):  #range(0,5) are the indices of rowList, [0, 1, 2, 3, 4]
+        for image in images[rowList[n]:rowList[n + 1]]:
+            trmCmd = trmCmd + '%s -resize 512x512 ' % image
+            if image == images[rowList[5] - 1]:
                 trmCmd = trmCmd + '+append )'
-            elif x == noglFiles[rowList[n] - 1]:
+            elif image == images[rowList[n] + 15]:
                 trmCmd = trmCmd + '+append ) ( '
-            else:
-                pass
-
-
-
+    trmCmd = trmCmd + ' -append %sspritesheet.jpg' % (directory + '/nbt/output/')
     if sys.platform == 'linux2' or sys.platform == 'linux':
-        trmCmd = trmCmd + ' -append %sspritesheet%s.jpg' % (workDir + '/assets/%s/output/' % taskname, taskname)
         trmCmd = trmCmd.replace('(', '"("');
         trmCmd = trmCmd.replace(')', '")"');
-        os.chdir(workDir + '/assets/%s/render' % taskname)
-    else:
-        trmCmd = trmCmd + ' -append %sspritesheet%s.jpg' % (workDir + '\\assets\\%s\\output\\' % taskname, taskname)
-        os.chdir(workDir + '\\assets\\%s\\render' % taskname)
+
+    os.mkdir(directory + '/nbt/output/')
+    os.chdir(directory + '/nbt/render/nogl/')
     os.system(trmCmd)
 
 
-def processGif(taskname, resGif, workDir):
-    if sys.platform == 'linux2' or sys.platform == 'linux':
-        imgFiles = os.listdir(workDir + '/assets/%s/render' % taskname)
-    else:
-        imgFiles = os.listdir(workDir + '\\assets\\%s\\render' % taskname)
-    gifFilesList = []
-    gifFiles     = ''
-    indices      = []
-    for index in range(82, 602):
-        if len(str(index)) == 1:
-            indices.append('000%s' % str(index))
-        elif len(str(index)) == 2:
-            indices.append('00%s' % str(index))
-        else:
-            indices.append('0%s' % str(index))
+def processGif(directory):
+    images = os.listdir(directory + '/nbt/render/gif/')
+    imageString = ''
+    for image in images:
+        imageString = imageString + image + ' '
+    trmCmd = 'convert -layers OptimizePlus -delay 3x100 %s-loop 0 %sanimation.gif' % (imageString, directory + '/nbt/output/')
 
-    for img in imgFiles:
-        for index in indices:
-            if img.find(index) != -1:
-                gifFilesList.append(img)
+    try:
+        os.mkdir(directory + '/nbt/output/')
+    except:
+        pass
+    os.chdir(directory + '/nbt/render/gif/')
+    os.system(trmCmd)
 
-    gifFilesList = sorted(gifFilesList)
-    for gifFile in gifFilesList:
-        gifFiles = gifFiles + gifFile + ' '
 
-    if sys.platform == 'linux2' or sys.platform == 'linux':
-        os.chdir(workDir + '/assets/%s/render' % taskname)
-        os.system('convert -layers OptimizePlus -delay 3x100 ' + gifFiles + '-loop 0 %sanimation%s.gif' % (workDir + '/assets/%s/output/' % taskname, taskname))
-    else:
-        os.chdir(workDir + '\\assets\\%s\\render' % taskname)
-        os.system('convert -layers OptimizePlus -delay 3x100 ' + gifFiles + '-loop 0 %sanimation%s.gif' % (workDir + '\\assets\\%s\\output\\' % taskname, taskname))
+def findNewest(searchTerm, directory):
+    #Walks through project, adds each filename containing searchTerm to variable matchedFiles
+    matchedFiles = []
+    for folder, subfolders, filenames in os.walk(directory):
+        for filename in filenames:
+            filename = folder.replace('\\', '/') + '/' + filename
+            if searchTerm in filename:
+                matchedFiles.append(filename)
 
+    #Stores the versioning system from each filename into an integer list:
+    versions = []
+    pattern = re.compile(r'\d\d\d_\d\d\d')
+    for image in matchedFiles:
+        version = pattern.findall(image)[0]
+        version = version.rsplit('_')
+        for n in range(len(version)):
+            version[n] = int(version[n])
+        versions.append(version)
+    versions.sort()
+
+    #returns newest version as a formatted string
+    newestVersion = versions[-1]
+    for n, value in enumerate(newestVersion):
+        newestVersion[n] = str(value).zfill(3)
+    newestVersion = '_v%s_%s' % (newestVersion[0], newestVersion[1])
+
+    for matchedFile in matchedFiles:
+        if newestVersion in matchedFile:
+            newestFile = matchedFile
+
+    return(newestFile)
 
 
 if __name__ == "__main__":
