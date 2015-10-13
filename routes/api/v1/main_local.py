@@ -1,9 +1,9 @@
 import bpy, sys, os, re
 
 def main():
-    directory = initInputs(0)
-    nogl      = initInputs(1)
-    gif       = initInputs(2)
+    directory    = initInputs(0)
+    nogl         = initInputs(1)
+    gif          = initInputs(2)
 
     initProject(directory)
     renderScene(nogl, 'nogl', directory)
@@ -15,7 +15,11 @@ def main():
 
 
 def initInputs(switch):
-    directory = os.getcwd().replace('\\', '/')
+    if sys.argv[-1].find('/') == -1 and sys.argv[-1].find('\\') == -1:
+        print('Please add the project directory as the last argument in single quotes.')
+    else:
+        directory = sys.argv[-1]
+        directory = directory.replace('\\', '/')
 
     if '-nogl' in sys.argv:
         nogl = int(sys.argv[sys.argv.index('-nogl') + 1])
@@ -36,8 +40,8 @@ def initInputs(switch):
 
 
 def initProject(directory):
-    bpy.ops.wm.open_mainfile(filepath = directory + '/assets/blueprintBlend/blueprint_v001_005.blend')
-    bpy.ops.import_scene.obj(filepath = directory + '/assets/input/geometry.obj')
+    bpy.ops.wm.open_mainfile(filepath = findNewest('blueprint', 'E:/Prizmiq/Misc/Dev/Github/kuro/assets/blueprintBlend/'))
+    bpy.ops.import_scene.obj(filepath = findNewest('clean', directory))
 
     for obj in bpy.data.objects:
         if 'Cube' != obj.name and 'fulcrum' != obj.name and 'Camera' != obj.name:
@@ -47,7 +51,7 @@ def initProject(directory):
     nodes              = mat.node_tree.nodes
     node_texture       = bpy.data.materials['Material'].node_tree.nodes[5]
     emission_shader    = bpy.data.materials['Material'].node_tree.nodes[2]
-    node_texture.image = bpy.data.images.load(directory + '/assets/input/diffuse.jpg')
+    node_texture.image = bpy.data.images.load(findNewest('diffuse', directory))
     links              = mat.node_tree.links
     link               = links.new(node_texture.outputs[0], emission_shader.inputs[0])
 
@@ -64,12 +68,12 @@ def renderScene(resolution, output, directory):
         render = bpy.data.scenes['Scene'].render
         render.resolution_x = resolution * 2
         render.resolution_y = resolution * 2
-        render.filepath = directory + '/assets/render/%s/' % output
+        render.filepath = directory + '/nbt/render/%s/' % output
         bpy.ops.render.render(animation = True, write_still = True)
 
 
 def processNogl(directory):
-    images = os.listdir(directory + '/assets/render/nogl/')
+    images = os.listdir(directory + '/nbt/render/nogl/')
     rowList = [0, 16, 32, 48, 64, 80]
     trmCmd = 'convert ( '
     for n in range(0, 5):  #range(0,5) are the indices of rowList, [0, 1, 2, 3, 4]
@@ -79,32 +83,63 @@ def processNogl(directory):
                 trmCmd = trmCmd + '+append )'
             elif image == images[rowList[n] + 15]:
                 trmCmd = trmCmd + '+append ) ( '
-    trmCmd = trmCmd + ' -append %sspritesheet.jpg' % (directory + '/assets/output/')
+    trmCmd = trmCmd + ' -append %sspritesheet.jpg' % (directory + '/nbt/output/')
     if sys.platform == 'linux2' or sys.platform == 'linux':
         trmCmd = trmCmd.replace('(', '"("');
         trmCmd = trmCmd.replace(')', '")"');
 
     try:
-        os.mkdir(directory + '/assets/output/')
+        os.mkdir(directory + '/nbt/output/')
     except:
         pass
-    os.chdir(directory + '/assets/render/nogl/')
+    os.chdir(directory + '/nbt/render/nogl/')
     os.system(trmCmd)
 
 
 def processGif(directory):
-    images = os.listdir(directory + '/assets/render/gif/')
+    images = os.listdir(directory + '/nbt/render/gif/')
     imageString = ''
     for image in images:
         imageString = imageString + image + ' '
-    trmCmd = 'convert -layers OptimizePlus -delay 3x100 %s-loop 0 %sanimation.gif' % (imageString, directory + '/assets/output/')
+    trmCmd = 'convert -layers OptimizePlus -delay 3x100 %s-loop 0 %sanimation.gif' % (imageString, directory + '/nbt/output/')
 
     try:
-        os.mkdir(directory + '/assets/output/')
+        os.mkdir(directory + '/nbt/output/')
     except:
         pass
-    os.chdir(directory + '/assets/render/gif/')
+    os.chdir(directory + '/nbt/render/gif/')
     os.system(trmCmd)
+
+
+def findNewest(searchTerm, directory):
+    #Walks through project, adds each filename containing searchTerm to variable matchedFiles
+    matchedFiles = []
+    for folder, subfolders, filenames in os.walk(directory):
+        for filename in filenames:
+            filename = folder.replace('\\', '/') + '/' + filename
+            if searchTerm in filename:
+                matchedFiles.append(filename)
+
+    #Stores the versioning system from each filename into an integer list:
+    versions = []
+    pattern = re.compile(r'_v(.*)_(.*)\.')
+    for filename in matchedFiles:
+        version = pattern.findall(filename)[0]  #Returns immutable tuple
+        versionList = [int(version[0]), int(version[1])]
+        versions.append(versionList)
+    versions.sort()
+
+    #returns newest version as a formatted string
+    newestVersion = versions[-1]
+    for n, value in enumerate(newestVersion):
+        newestVersion[n] = str(value).zfill(3)
+    newestVersion = '_v%s_%s' % (newestVersion[0], newestVersion[1])
+
+    for matchedFile in matchedFiles:
+        if newestVersion in matchedFile:
+            newestFile = matchedFile
+
+    return(newestFile)
 
 
 main()
