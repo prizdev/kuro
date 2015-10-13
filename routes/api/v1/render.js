@@ -37,7 +37,7 @@ module.exports = function(req, res) {
                                 if(err) res.send('task creation failed: directory creation failed3');
                                 else {
                                     Object.keys(req.files).forEach(function(e){
-                                        fs.renameSync(req.files[e][0].path, path.join(process.cwd(), '/assets/'+insert_results.rows[0].name+'/input/' + e + '.' + req.files[e][0].originalname.split('.')[1]));
+                                        fs.renameSync(req.files[e][0].path, path.join(process.cwd(), '/assets/'+insert_results.rows[0].name+'/input/' + e + '.' + req.files[e][0].originalname.split('.')[1].toLowerCase()));
                                     });
                                     client.query(count_query, function(err, count_results) {
                                         if(err) {error(err, res);done();}
