@@ -1,6 +1,5 @@
 import bpy, sys, os, re
 
-
 def main():
     directory    = initInputs(0)
     nogl         = initInputs(1)
@@ -16,10 +15,11 @@ def main():
 
 
 def initInputs(switch):
-    if sys.argv[-1].find('/') == -1:
+    if sys.argv[-1].find('/') == -1 and sys.argv[-1].find('\\') == -1:
         print('Please add the project directory as the last argument in single quotes.')
     else:
-        directory = sys.argv[-1].replace('\\', '/')
+        directory = sys.argv[-1]
+        directory = directory.replace('\\', '/')
 
     if '-nogl' in sys.argv:
         nogl = int(sys.argv[sys.argv.index('-nogl') + 1])
@@ -44,7 +44,7 @@ def initProject(directory):
     bpy.ops.import_scene.obj(filepath = findNewest('center', directory))
 
     for obj in bpy.data.objects:
-        if 'Group' in obj.name:
+        if 'Cube' != obj.name and 'fulcrum' != obj.name and 'Camera' != obj.name:
             obj.data.materials[0] = bpy.data.materials['Material']
 
     mat                = bpy.data.materials['Material']
@@ -60,7 +60,7 @@ def renderScene(resolution, output, directory):
     if resolution != 0:
         if output == 'gif':
             bpy.data.scenes['Scene'].frame_start = 82
-            bpy.data.scenes['Scene'].frame_end   = 382
+            bpy.data.scenes['Scene'].frame_end   = 381
         else:
             bpy.data.scenes['Scene'].frame_start = 2
             bpy.data.scenes['Scene'].frame_end   = 81
@@ -88,7 +88,10 @@ def processNogl(directory):
         trmCmd = trmCmd.replace('(', '"("');
         trmCmd = trmCmd.replace(')', '")"');
 
-    os.mkdir(directory + '/nbt/output/')
+    try:
+        os.mkdir(directory + '/nbt/output/')
+    except:
+        pass
     os.chdir(directory + '/nbt/render/nogl/')
     os.system(trmCmd)
 
@@ -119,12 +122,11 @@ def findNewest(searchTerm, directory):
 
     #Stores the versioning system from each filename into an integer list:
     versions = []
-    pattern = re.compile(r'\d\d\d_\d\d\d')
-    for image in matchedFiles:
-        version = pattern.findall(image)[0]
-        version = version.rsplit('_')
-        for n in range(len(version)):
-            version[n] = int(version[n])
+    pattern = re.compile(r'_v(.*)_(.*)\.')
+    for filename in matchedFiles:
+        version = pattern.findall(filename)[0]
+        for n, part in enumerate(version):
+            version[n] = int(part)
         versions.append(version)
     versions.sort()
 
@@ -141,5 +143,4 @@ def findNewest(searchTerm, directory):
     return(newestFile)
 
 
-if __name__ == "__main__":
-    main()
+main()
