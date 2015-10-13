@@ -41,7 +41,7 @@ def initInputs(switch):
 
 def initProject(directory):
     bpy.ops.wm.open_mainfile(filepath = findNewest('blueprint', 'E:/Prizmiq/Misc/Dev/Github/kuro/assets/blueprintBlend/'))
-    bpy.ops.import_scene.obj(filepath = findNewest('center', directory))
+    bpy.ops.import_scene.obj(filepath = findNewest('clean', directory))
 
     for obj in bpy.data.objects:
         if 'Cube' != obj.name and 'fulcrum' != obj.name and 'Camera' != obj.name:
@@ -124,10 +124,9 @@ def findNewest(searchTerm, directory):
     versions = []
     pattern = re.compile(r'_v(.*)_(.*)\.')
     for filename in matchedFiles:
-        version = pattern.findall(filename)[0]
-        for n, part in enumerate(version):
-            version[n] = int(part)
-        versions.append(version)
+        version = pattern.findall(filename)[0]  #Returns immutable tuple
+        versionList = [int(version[0]), int(version[1])]
+        versions.append(versionList)
     versions.sort()
 
     #returns newest version as a formatted string
