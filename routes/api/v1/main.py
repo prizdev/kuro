@@ -9,8 +9,8 @@ def main():
     initProject(directory, taskname)
     renderScene(nogl, 'nogl', directory, taskname)
     renderScene(gif, 'gif', directory, taskname)
-    processNogl(directory)
-    processGif(directory)
+    processNogl(directory, taskname)
+    processGif(directory, taskname)
 
     print('Finished script!')
 
@@ -73,7 +73,7 @@ def renderScene(resolution, output, directory, taskname):
         bpy.ops.render.render(animation = True, write_still = True)
 
 
-def processNogl(directory):
+def processNogl(directory, taskname):
     images = os.listdir(directory + '/assets/%s/render/nogl/' % taskname)
     rowList = [0, 16, 32, 48, 64, 80]
     trmCmd = 'convert ( '
@@ -93,7 +93,7 @@ def processNogl(directory):
     os.system(trmCmd)
 
 
-def processGif(directory):
+def processGif(directory, taskname):
     images = os.listdir(directory + '/assets/%s/render/gif/' % taskname)
     imageString = ''
     for image in images:
