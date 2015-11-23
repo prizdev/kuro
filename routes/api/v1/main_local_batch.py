@@ -1,24 +1,24 @@
 import bpy, sys, os, re
 
 def main():
-        directory    = initInputs(0)
-        nogl         = initInputs(1)
-        gif          = initInputs(2)
+    for directory in os.listdir('E:/Prizmiq/Shoes.com/October/'):
+        directory = 'E:/Prizmiq/Shoes.com/October/' + directory
+        try:
+            nogl         = initInputs(1)
+            gif          = initInputs(2)
 
-        initProject(directory)
-        renderScene(nogl, 'nogl', directory)
-        renderScene(gif, 'gif', directory)
-        processNogl(directory)
-        processGif(directory)
+            initProject(directory)
+            renderScene(nogl, 'nogl', directory)
+            renderScene(gif, 'gif', directory)
+            processNogl(directory)
+            processGif(directory)
+
+            print('Finished script!')
+        except:
+            pass
 
 
 def initInputs(switch):
-    if sys.argv[-1].find('/') == -1 and sys.argv[-1].find('\\') == -1:
-        print('Please add the project directory as the last argument in single quotes.')
-    else:
-        directory = sys.argv[-1]
-        directory = directory.replace('\\', '/')
-
     if '-nogl' in sys.argv:
         nogl = int(sys.argv[sys.argv.index('-nogl') + 1])
     else:
@@ -38,7 +38,7 @@ def initInputs(switch):
 
 
 def initProject(directory):
-    bpy.ops.wm.open_mainfile(filepath = findNewest('blueprint', 'E:/Prizmiq/Misc/Dev/Github/kuro/assets/blueprintBlend/'))
+    bpy.ops.wm.open_mainfile(filepath = findNewest('blueprint', 'E:/Prizmiq/Misc/Dev/Github/kuro/assets/blueprintBlend'))
     bpy.ops.import_scene.obj(filepath = findNewest('clean', directory))
 
     for obj in bpy.data.objects:
@@ -72,6 +72,7 @@ def renderScene(resolution, output, directory):
 
 def processNogl(directory):
     images = os.listdir(directory + '/nbt/render/nogl/')
+    images.reverse()
     rowList = [0, 16, 32, 48, 64, 80]
     trmCmd = 'convert ( '
     for n in range(0, 5):  #range(0,5) are the indices of rowList, [0, 1, 2, 3, 4]
@@ -81,7 +82,7 @@ def processNogl(directory):
                 trmCmd = trmCmd + '+append )'
             elif image == images[rowList[n] + 15]:
                 trmCmd = trmCmd + '+append ) ( '
-    trmCmd = trmCmd + ' -append %sspritesheet.jpg' % (directory + '/nbt/output/')
+    trmCmd = trmCmd + ' -append %sspritesheet1.jpg' % (directory + '/nbt/output/')
     if sys.platform == 'linux2' or sys.platform == 'linux':
         trmCmd = trmCmd.replace('(', '"("');
         trmCmd = trmCmd.replace(')', '")"');
